@@ -1,6 +1,7 @@
 import random
-
-import Board
+from Board import Board
+from Population import Population
+from Parameters import Parameters
 
 class GA:
     running = False

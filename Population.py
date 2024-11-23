@@ -1,7 +1,8 @@
 import random
 import logging
-import Individual 
-import Board
+from Individual import Individual 
+from Board import Board
+
 
 class Population:
     fittest = 0
@@ -10,7 +11,7 @@ class Population:
 
     @staticmethod
     def initialization(n):
-        # Initialize population with n individuals
+        # Initialize population  n individuals
         for i in range(1, n+1):
             individual = Individual()
             individual.id = i
@@ -46,6 +47,7 @@ class Population:
 
     @staticmethod
     def sort():
+        from GA import GA
         # Sort the population by fitness
         Population.individuals.sort(key=lambda individual: individual.fitness)
         best_individual = Population.individuals[-1]
@@ -61,6 +63,7 @@ class Population:
 
     @staticmethod
     def re_initialization(reborn_rate):
+        from GA import GA
         # Reinitialize a portion of the population
         n = int(len(Population.individuals) * reborn_rate)
         GA.stucked = 0
