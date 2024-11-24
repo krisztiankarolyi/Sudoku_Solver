@@ -9,8 +9,8 @@ class GA:
     stucked = 0
     restarted = 0
     mut_types = ["rand", "swap big", "swap small", "incr"]
-    sel_types = [""]
-    crossover_types = ["random", "tournament", "row", "col", "grid"]
+    sel_types = ["tournament", "random"]
+    crossover_types = ["grid", "col", "row"]
 
 
     @staticmethod

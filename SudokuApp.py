@@ -26,7 +26,7 @@ class SudokuApp:
             # self.drawBoard() 
         self.draw_buttons()
         self.draw_parameter_frame()
-        self.root.geometry("600x800")
+        self.root.geometry("550x750")
         self.root.resizable(False, False)
 
         self.status_label = tk.Label(
@@ -262,7 +262,6 @@ class SudokuApp:
             "max_generation",
             "population_size",
             "selection_rate",
-            "selection_type",
             "mutation_rate",
             "mutation_strength",
         ]
@@ -280,6 +279,7 @@ class SudokuApp:
             entry = tk.Entry(self.parameter_frame, font=("Arial", 10), width=15)
             entry.grid(row=i, column=1, padx=5, pady=2)
             self.parameter_entries[label] = entry
+
         
         self.mut_types_label = tk.Label(
             self.parameter_frame,
@@ -289,26 +289,40 @@ class SudokuApp:
             font=("Arial", 10)
         )
         self.mut_types_label.grid(row=10, column=0, sticky="w", padx=5, pady=2)
-
         self.mut_combo_box = ttk.Combobox(self.parameter_frame, values=GA.mut_types, state="readonly")
         self.mut_combo_box.set(GA.mut_types[0])  # Default selection
         self.mut_combo_box.grid(row=10, column=1, padx=10, pady=0)
 
-                  
-        self.mut_types_label = tk.Label(
+                
+        self.crossover_type_label = tk.Label(
             self.parameter_frame,
             text="crossover_type:",
             fg="white",
             bg="#333333",
             font=("Arial", 10)
         )
-        self.mut_types_label.grid(row=11, column=0, sticky="w", padx=5, pady=2)
-
+        self.crossover_type_label.grid(row=11, column=0, sticky="w", padx=5, pady=2)
         self.crossover_combo_box = ttk.Combobox(self.parameter_frame, values=GA.crossover_types, state="readonly")
         self.crossover_combo_box.set(GA.crossover_types[0])  # Default selection
         self.crossover_combo_box.grid(row=11, column=1, padx=10, pady=0)
 
-      
+
+                  
+        self.selection_type_label = tk.Label(
+            self.parameter_frame,
+            text="crossover_type:",
+            fg="white",
+            bg="#333333",
+            font=("Arial", 10)
+        )
+        self.selection_type_label.grid(row=12, column=0, sticky="w", padx=5, pady=2)
+        self.selection_combo_box = ttk.Combobox(self.parameter_frame, values=GA.sel_types, state="readonly")
+        self.selection_combo_box.set(GA.sel_types[0])  # Default selection
+        self.selection_combo_box.grid(row=12, column=1, padx=10, pady=0)
+
+        
+
+
         self.load_default_parameters()
 
     def save_parameters(self):
@@ -319,11 +333,11 @@ class SudokuApp:
             Parameters.max_generation = int(self.parameter_entries["max_generation"].get())
             Parameters.population_size = int(self.parameter_entries["population_size"].get())
             Parameters.selection_rate = float(self.parameter_entries["selection_rate"].get())
-            Parameters.selection_type = self.parameter_entries["selection_type"].get()
             Parameters.mutation_rate = float(self.parameter_entries["mutation_rate"].get())
             Parameters.mutation_strength = float(self.parameter_entries["mutation_strength"].get())
             Parameters.mutation_type = self.mut_combo_box.get()
             Parameters.crossover_type = self.crossover_combo_box.get()
+            Parameters.selection_type = self.selection_combo_box.get()
 
             messagebox.showinfo("Success", "Parameters saved successfully!")
         except ValueError as e:
