@@ -1,19 +1,19 @@
 import asyncio
 import threading
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from Board import Board  
 from GA import GA
 from Population import Population
 from Parameters import Parameters
-from ProblemGenerator import ProblemGenerator
 
 class SudokuApp:
+
     def __init__(self, root):
         self.root = root
         self.root.title("Sudoku Solver")
-        self.root.configure(bg="#333333")  # Ablak háttérszíne
-        self.problem_generator = ProblemGenerator()       
+        self.root.configure(bg="#333333")  # Ablak háttérszíne   
         # Fő keret
         self.main_frame = tk.Frame(self.root, padx=10, pady=10, bg="#333333")
         self.main_frame.pack()
@@ -26,8 +26,12 @@ class SudokuApp:
             # self.drawBoard() 
         self.draw_buttons()
         self.draw_parameter_frame()
-        self.root.geometry("600x750")
+        self.root.geometry("600x800")
         self.root.resizable(False, False)
+
+        self.status_label = tk.Label(
+        root, text="Initializing...", font=("Arial", 14), fg="blue",anchor="w" )
+        self.status_label.pack(fill="x", padx=10, pady=5)  
 
     def drawBoard(self):
         self.entries = []
@@ -70,22 +74,11 @@ class SudokuApp:
         # Gombok keret
         self.button_frame = tk.Frame(self.main_frame, pady=10, bg="#333333")
         self.button_frame.pack(fill=tk.X)
-
-        # Generate gomb
-        self.generate_button = tk.Button(
-            self.button_frame,
-            text="Generate",
-            command=lambda: self.problem_generator.generate_sudoku(self.entries, self.clear_grid()),
-            bg="#555555",
-            fg="white",
-            font=("Arial", 12)
-        )
-        self.generate_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-
+ 
         # Load gomb
         self.load_button = tk.Button(
             self.button_frame, 
-            text="Load", 
+            text="Generate Problem", 
             command=self.load_problem, 
             bg="#555555", 
             fg="white", 
@@ -115,18 +108,21 @@ class SudokuApp:
         )
         self.solve_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
-        self.parameter_button = tk.Button(
+          # Save gomb
+        self.save_button = tk.Button(
             self.button_frame,
-            text="Parameters",
-            command=self.draw_parameter_frame,
+            text="Save Parameters",
+            command=self.save_parameters,
             bg="#555555",
             fg="white",
-            font=("Arial", 12),
+            font=("Arial", 13),
         )
-        self.parameter_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+        self.save_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
            
     def load_problem(self):
-        Board.set_problem(40)
+        Board.set_problem(Parameters.given_numbers)
         print(Board.problem)
         self.drawBoard()
 
@@ -189,9 +185,9 @@ class SudokuApp:
             Population.sort()
 
             # Kiírás: Generáció száma, legjobb és legrosszabb fitness
-            fittest = [ind.fitness for ind in Population.individuals[-10:]]
-            worst = [ind.fitness for ind in Population.individuals[:10]]
-            print(f"Generation: {Population.generation}/{Parameters.max_generation}  Fittest: {max(fittest)}  Worst: {min(worst)}")
+            fittest = [ind.fitness for ind in Population.individuals[-10:]][-1]
+            worst = [ind.fitness for ind in Population.individuals[:10]][0]      
+            self.status_label.config( text=f"Generation: {Population.generation}/{Parameters.max_generation}  Fittest: {fittest}  Worst: {worst}")
 
             GA.selection(Population.individuals, Parameters.selection_rate)
             GA.crossover(
@@ -208,7 +204,8 @@ class SudokuApp:
 
             # Generációk növelése
             Population.generation += 1
-            Population.show_best()
+            best = Population.get_best()
+            self.update_board(best.body)
 
             # Aszinkron késleltetés (pl. vizualizáció frissítésére)
             await asyncio.sleep(0)
@@ -227,11 +224,28 @@ class SudokuApp:
         GA.running = False
         # Itt hívhatod meg a canvas frissítését vagy más vizualizációt
         
-    def update_cell(self, row, col, value):
-        """ Frissíti az adott cellát a Sudoku táblán. """
-        self.entries[row][col].delete(0, tk.END)
-        self.entries[row][col].insert(0, str(value))
-        self.root.update_idletasks() 
+    def update_board(self, values):
+        """
+        Frissíti a táblázatot a megadott tömb alapján.
+
+        :param values: 9x9-es tömb, amely a frissítendő értékeket tartalmazza
+        """
+        for row in range(9):
+            for col in range(9):
+                # Aktuális `Entry` widget
+                entry = self.entries[row][col]
+
+                if(Board.problem[row][col] != values[row][col]):                 
+                    # Előző érték törlése
+                    entry.config(state="normal")  # Ideiglenesen szerkeszthetővé tesszük
+                    entry.delete(0, tk.END)
+                    # Új érték beállítása
+                    if values[row][col] != 0:
+                        entry.insert(tk.END, str(values[row][col]))
+                        entry.config(state="readonly")  # Nem szerkeszthetővé tesszük
+                        entry.config(fg="brown")
+                    else:
+                        entry.config(state="normal")  # Ha nincs érték, szerkeszthető marad
     
     def stop_running(self):
         GA.running = False
@@ -249,10 +263,8 @@ class SudokuApp:
             "population_size",
             "selection_rate",
             "selection_type",
-            "crossover_type",
             "mutation_rate",
             "mutation_strength",
-            "mutation_type",
         ]
 
         self.parameter_entries = {}
@@ -264,21 +276,39 @@ class SudokuApp:
                 bg="#333333",
                 font=("Arial", 10),
             ).grid(row=i, column=0, sticky="w", padx=5, pady=2)
-
+            
             entry = tk.Entry(self.parameter_frame, font=("Arial", 10), width=15)
             entry.grid(row=i, column=1, padx=5, pady=2)
             self.parameter_entries[label] = entry
-
-        # Save gomb
-        save_button = tk.Button(
+        
+        self.mut_types_label = tk.Label(
             self.parameter_frame,
-            text="Save Parameters",
-            command=self.save_parameters,
-            bg="#555555",
+            text="mutation_type:",
             fg="white",
-            font=("Arial", 12),
+            bg="#333333",
+            font=("Arial", 10)
         )
-        save_button.grid(row=len(labels), column=0, columnspan=2, pady=10)
+        self.mut_types_label.grid(row=10, column=0, sticky="w", padx=5, pady=2)
+
+        self.mut_combo_box = ttk.Combobox(self.parameter_frame, values=GA.mut_types, state="readonly")
+        self.mut_combo_box.set(GA.mut_types[0])  # Default selection
+        self.mut_combo_box.grid(row=10, column=1, padx=10, pady=0)
+
+                  
+        self.mut_types_label = tk.Label(
+            self.parameter_frame,
+            text="crossover_type:",
+            fg="white",
+            bg="#333333",
+            font=("Arial", 10)
+        )
+        self.mut_types_label.grid(row=11, column=0, sticky="w", padx=5, pady=2)
+
+        self.crossover_combo_box = ttk.Combobox(self.parameter_frame, values=GA.crossover_types, state="readonly")
+        self.crossover_combo_box.set(GA.crossover_types[0])  # Default selection
+        self.crossover_combo_box.grid(row=11, column=1, padx=10, pady=0)
+
+      
         self.load_default_parameters()
 
     def save_parameters(self):
@@ -290,10 +320,10 @@ class SudokuApp:
             Parameters.population_size = int(self.parameter_entries["population_size"].get())
             Parameters.selection_rate = float(self.parameter_entries["selection_rate"].get())
             Parameters.selection_type = self.parameter_entries["selection_type"].get()
-            Parameters.crossover_type = self.parameter_entries["crossover_type"].get()
             Parameters.mutation_rate = float(self.parameter_entries["mutation_rate"].get())
             Parameters.mutation_strength = float(self.parameter_entries["mutation_strength"].get())
-            Parameters.mutation_type = self.parameter_entries["mutation_type"].get()
+            Parameters.mutation_type = self.mut_combo_box.get()
+            Parameters.crossover_type = self.crossover_combo_box.get()
 
             messagebox.showinfo("Success", "Parameters saved successfully!")
         except ValueError as e:

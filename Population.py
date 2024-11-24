@@ -28,13 +28,15 @@ class Population:
         logging.info(f'{len(Population.individuals)} individuals created')
 
     @staticmethod
-    def show_best():
+    def get_best():
         # Show the body and genome of the fittest individual
         best_individual = Population.individuals[-1]
         for i in range(9):
             for j in range(9):
                 Board.individualBody[i][j] = best_individual.body[i][j]
                 Board.individualGenomValues[i][j] = best_individual.genomeValues[i][j]
+        return best_individual
+
 
     @staticmethod
     def show_one(index):

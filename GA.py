@@ -8,6 +8,10 @@ class GA:
     solved = ""
     stucked = 0
     restarted = 0
+    mut_types = ["rand", "swap big", "swap small", "incr"]
+    sel_types = [""]
+    crossover_types = ["random", "tournament", "row", "col", "grid"]
+
 
     @staticmethod
     def fitness(individuals):
@@ -71,6 +75,7 @@ class GA:
         n = int(len(Population.individuals) * percentage)
         for i in range(n):
             individuals[i].kill()
+            
 
     @staticmethod
     def mutation(individuals, rate, strength, type_):
