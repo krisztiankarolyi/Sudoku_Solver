@@ -123,7 +123,6 @@ class SudokuApp:
            
     def load_problem(self):
         Board.set_problem(Parameters.given_numbers)
-        print(Board.problem)
         self.drawBoard()
 
     def set_parameters(self):
@@ -158,7 +157,6 @@ class SudokuApp:
 
     async def run_simulation(self):
         # Kiindulási állapotok
-        messagebox.showinfo("Solve", "Solving Sudoku!")
         Population.individuals = []
         Population.generation = 1
         GA.solved = ""
@@ -179,6 +177,7 @@ class SudokuApp:
             # Ellenőrizzük, hogy valamelyik egyed elérte-e a maximális fitness értéket
             if Population.individuals[-1].fitness == 243:  # Sudoku esetében a maximum fitness érték
                 GA.solved = "true"
+                messagebox.showinfo("Done", "Sudoku has been solved")
                 break
 
             # Egyedek rendezése, szelekció, keresztezés és mutáció
@@ -243,9 +242,13 @@ class SudokuApp:
                     if values[row][col] != 0:
                         entry.insert(tk.END, str(values[row][col]))
                         entry.config(state="readonly")  # Nem szerkeszthetővé tesszük
-                        entry.config(fg="brown")
                     else:
                         entry.config(state="normal")  # Ha nincs érték, szerkeszthető marad
+                    
+                    if(Board.individualGenomValues[row][col] == 3):
+                        entry.config(fg="green") 
+                    else:
+                        entry.config(fg="red") 
     
     def stop_running(self):
         GA.running = False
