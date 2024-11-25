@@ -15,6 +15,9 @@ class GA:
 
     @staticmethod
     def fitness(individuals):
+        """
+        Evaluates the fitness of a list of individuals based on their genomes.
+        """
         for individual in individuals:
             for i in range(9):
                 for j in range(9):
@@ -23,6 +26,10 @@ class GA:
 
     @staticmethod
     def crossover(individuals, percentage, type_):
+        """
+        Performs crossover on individuals to create new offspring. Selection type 
+        and crossover method (e.g., row, column, or grid) determine the outcome.
+        """
         n = int(len(Population.individuals) * percentage)
 
         for i in range(0, n, 2):
@@ -72,13 +79,23 @@ class GA:
 
     @staticmethod
     def selection(individuals, percentage):
+        """
+        Removes a percentage of the weakest individuals from the population.
+        """
         n = int(len(Population.individuals) * percentage)
         for i in range(n):
-            individuals[i].kill()
-            
+            individuals[i].kill()           
 
     @staticmethod
     def mutation(individuals, rate, strength, type_):
+        """
+        Performs crossover on the given individuals.
+
+        Args:
+            individuals (list): A list of individual objects to modify.
+            percentage (float): The percentage of individuals to apply crossover on.
+            type (str): The type of crossover to perform. Options are "grid", "col", or "row".
+        """
         n = int(Parameters.population_size * Parameters.selection_rate * rate)
         for i in range(n):
             counter = 0
@@ -118,6 +135,11 @@ class GA:
 
     @staticmethod
     def genome_value(x, y, num, individual):
+        """
+        genome_value:
+        Calculates the genome value of a number at a specific position in an 
+        individual's grid, based on Sudoku rules.
+        """
         rowOk, columnOk, gridOk = True, True, True
 
         # check column
@@ -153,6 +175,11 @@ class GA:
 
     @staticmethod
     def genome_value2(x, y, num, individual):
+        """
+        genome_value2:
+        Simplified version of genome_value, checking only basic constraints 
+        (row, column, and grid validity).
+        """
         for i in range(9):
             if individual.body[i][y] == num and x != i:
                 return 0

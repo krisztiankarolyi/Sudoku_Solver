@@ -184,9 +184,10 @@ class SudokuApp:
             Population.sort()
 
             # Kiírás: Generáció száma, legjobb és legrosszabb fitness
-            fittest = [ind.fitness for ind in Population.individuals[-10:]][-1]
-            worst = [ind.fitness for ind in Population.individuals[:10]][0]      
-            self.status_label.config( text=f"Generation: {Population.generation}/{Parameters.max_generation}  Fittest: {fittest}  Worst: {worst}")
+            fittest = Population.individuals[-1]
+            worst = Population.individuals[0]     
+
+            self.status_label.config(font=("Arial", 13), text=f"numbers in place: {fittest.numbers_in_place()}/81  Generation: {Population.generation}/{Parameters.max_generation}  Fittest: {fittest.fitness}  Worst: {worst.fitness}")
 
             GA.selection(Population.individuals, Parameters.selection_rate)
             GA.crossover(
@@ -226,8 +227,7 @@ class SudokuApp:
     def update_board(self, values):
         """
         Frissíti a táblázatot a megadott tömb alapján.
-
-        :param values: 9x9-es tömb, amely a frissítendő értékeket tartalmazza
+        \nparam values: 9x9-es tömb, amely a frissítendő értékeket tartalmazza
         """
         for row in range(9):
             for col in range(9):
@@ -236,14 +236,14 @@ class SudokuApp:
 
                 if(Board.problem[row][col] != values[row][col]):                 
                     # Előző érték törlése
-                    entry.config(state="normal")  # Ideiglenesen szerkeszthetővé tesszük
+                    entry.config(state="normal")  
                     entry.delete(0, tk.END)
                     # Új érték beállítása
                     if values[row][col] != 0:
                         entry.insert(tk.END, str(values[row][col]))
-                        entry.config(state="readonly")  # Nem szerkeszthetővé tesszük
+                        entry.config(state="readonly") 
                     else:
-                        entry.config(state="normal")  # Ha nincs érték, szerkeszthető marad
+                        entry.config(state="normal")  
                     
                     if(Board.individualGenomValues[row][col] == 3):
                         entry.config(fg="green") 

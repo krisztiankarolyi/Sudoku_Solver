@@ -11,6 +11,10 @@ class Population:
 
     @staticmethod
     def initialization(n):
+        """
+        Creates an initial population of n individuals. Each individual is filled with
+        values from the Board's problem matrix or random numbers for empty cells.
+        """
         # Initialize population  n individuals
         for i in range(1, n+1):
             individual = Individual()
