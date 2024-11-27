@@ -5,4 +5,4 @@ Sudoku problem generator and solver based on the Genetic Algorithm, written in P
 ![image](https://github.com/user-attachments/assets/96749cae-58c9-4325-9b2e-36a308b4b3f5)
 ![image](https://github.com/user-attachments/assets/6556146f-d0eb-4a21-b37b-40bed4495ee5)
 ![image](https://github.com/user-attachments/assets/4c3618ff-839a-4557-98ae-9772d2174592)
-
+![image](https://github.com/user-attachments/assets/6eb4f94e-9774-4bf9-bba6-5ec68fcc4459)
