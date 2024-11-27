@@ -49,3 +49,5 @@ class ProblemGenerator:
             if grid[row][col] != 0:
                 grid[row][col] = 0
                 count -= 1
+    
+    

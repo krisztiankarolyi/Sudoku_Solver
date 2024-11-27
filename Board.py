@@ -1,5 +1,7 @@
 import random
+from Parameters import Parameters
 from Problems import Problems
+import tkinter as tk
 
 class Board:
     problem = [
@@ -65,3 +67,24 @@ class Board:
             if Board.problem[rand_x][rand_y] != 0:
                 Board.problem[rand_x][rand_y] = 0
                 n -= 1
+    
+    @staticmethod
+    def read_problem(app):
+        given_numbers = 0
+        for i in range(9):
+            for j in range(9):
+                value = app.entries[i][j].get().strip()  # Beolvassuk az értéket a cellából
+                if value.isdigit():  # Csak akkor vesszük figyelembe, ha szám
+                    Board.problem[i][j] = int(value[0])
+                    app.entries[i][j].delete(0, tk.END)  # Töröljük a mező tartalmát
+                    app.entries[i][j].insert(0, value[0])  # Beszúrjuk az első számjegyet
+                    given_numbers+=1
+                    
+                else:
+                    Board.problem[i][j] = 0  # Ha üres vagy nem szám, akkor 0 lesz
+        print("The problem was read from the board")
+        print(Board.problem)
+        Parameters.given_numbers = given_numbers
+        app.parameter_entries["given_numbers"].delete(0, tk.END)
+        app.parameter_entries["given_numbers"].insert(0, given_numbers) 
+

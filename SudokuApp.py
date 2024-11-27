@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import time
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -11,6 +12,7 @@ from Parameters import Parameters
 class SudokuApp:
 
     def __init__(self, root):
+        self.to_read_problem = False
         self.root = root
         self.root.title("Sudoku Solver")
         self.root.configure(bg="#333333")  # Ablak háttérszíne   
@@ -26,14 +28,14 @@ class SudokuApp:
             # self.drawBoard() 
         self.draw_buttons()
         self.draw_parameter_frame()
-        self.root.geometry("550x750")
+        self.root.geometry("600x750")
         self.root.resizable(False, False)
 
         self.status_label = tk.Label(
         root, text="Initializing...", font=("Arial", 14), fg="blue",anchor="w" )
         self.status_label.pack(fill="x", padx=10, pady=5)  
 
-    def drawBoard(self):
+    def drawBoard(self, mode: str = "readonly"):
         self.entries = []
         for row in range(9):
             row_entries = []
@@ -66,7 +68,7 @@ class SudokuApp:
                 # A Board.problem tömb értékének beállítása az Entry widgetekben
                 if Board.problem[row][col] != 0:
                     entry.insert(tk.END, str(Board.problem[row][col]))  # Ha van érték, azt beírjuk
-                entry.config(state='readonly')  # Ne lehessen szerkeszteni
+                entry.config(state=mode)  
                
             self.entries.append(row_entries)
      
@@ -117,13 +119,44 @@ class SudokuApp:
             fg="white",
             font=("Arial", 13),
         )
-
         self.save_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+        
+        self.read_problem_button = tk.Button(
+            self.button_frame,
+            text="Add Problem",
+            command=self.read_problem,
+            bg="#555555",
+            fg="white",
+            font=("Arial", 13),
+        )
+        self.read_problem_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
 
            
     def load_problem(self):
+        self.to_read_problem = False
         Board.set_problem(Parameters.given_numbers)
         self.drawBoard()
+        self.lock_entries("readonly")
+
+    def read_problem(self):
+        self.lock_entries("normal")
+        self.to_read_problem = True
+        self.clear_grid()
+        messagebox.showinfo("information", "Please fill in the given numbers. Please note, that any fields conataining not only numbers (1-9) will be deleted. Just press solve if you're done typing the problem.")        
+  
+
+    def lock_entries(self, mode:str = "readonly"):
+        """
+        (un)lock entries in the board. \n Params:
+        state: normal/readonly
+        """
+        for i in range(9):
+            for j in range(9):
+                self.entries[i][j].config(state=mode)
+
+               
+
 
     def set_parameters(self):
         # Paraméterek beállítása
@@ -134,6 +167,7 @@ class SudokuApp:
         for row_entries in self.entries:
             for entry in row_entries:
                 entry.config(state='normal')
+                entry.config(fg='black')
                 entry.delete(0, tk.END)  # Töröljük a cellák tartalmát
         Board.clear()
 
@@ -156,6 +190,11 @@ class SudokuApp:
         threading.Thread(target=lambda: asyncio.run(self.run_simulation()), daemon=True).start()
 
     async def run_simulation(self):
+        #ha be kell olvasni a usertől
+        if(self.to_read_problem):
+            Board.read_problem(self)
+        self.lock_entries("readonly")
+
         # Kiindulási állapotok
         Population.individuals = []
         Population.generation = 1
@@ -163,8 +202,12 @@ class SudokuApp:
         GA.restarted = 0
         GA.running = True
 
+
         # Inicializálás
         Population.initialization(Parameters.population_size)
+        
+        start_time = time.time()
+
 
         while Population.generation != Parameters.max_generation and GA.running:
             # Ha beragadtunk, újrainicializálás
@@ -186,8 +229,9 @@ class SudokuApp:
             # Kiírás: Generáció száma, legjobb és legrosszabb fitness
             fittest = Population.individuals[-1]
             worst = Population.individuals[0]     
+            elapsed_time = time.time() - start_time
 
-            self.status_label.config(font=("Arial", 13), text=f"numbers in place: {fittest.numbers_in_place()}/81  Generation: {Population.generation}/{Parameters.max_generation}  Fittest: {fittest.fitness}  Worst: {worst.fitness}")
+            self.status_label.config(font=("Arial", 10), text=f"numbers in place: {fittest.numbers_in_place()}/81  Generation: {Population.generation}/{Parameters.max_generation}  Fittest: {fittest.fitness}  Worst: {worst.fitness}  Elapsed time: {round(elapsed_time, 2)}s")
 
             GA.selection(Population.individuals, Parameters.selection_rate)
             GA.crossover(
@@ -210,19 +254,15 @@ class SudokuApp:
             # Aszinkron késleltetés (pl. vizualizáció frissítésére)
             await asyncio.sleep(0)
 
-        # Eredmény ellenőrzése
-        if Population.individuals[-1].fitness != 243:
-            GA.solved = "false"
-        GA.fitness(Population.individuals)
-        GA.running = False
-
+        
+    
 
         # Eredmény ellenőrzése
         if Population.individuals[-1].fitness != 243:
             GA.solved = "false"
         GA.fitness(Population.individuals)
         GA.running = False
-        # Itt hívhatod meg a canvas frissítését vagy más vizualizációt
+
         
     def update_board(self, values):
         """
